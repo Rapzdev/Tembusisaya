@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hack Battle - Game Perlumbaan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff00;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-top: 50px;
+        }
+
+        .container-wide {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .title {
+            font-size: 3em;
+            text-align: center;
+            color: #00ff00;
+            text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00; }
+            to { text-shadow: 0 0 30px #00ff00, 0 0 60px #00ff00, 0 0 80px #00ff00; }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #00aaff;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            text-align: center;
+            color: #ff3333;
+            background: rgba(255, 51, 51, 0.1);
+            padding: 10px;
+            border: 2px solid #ff3333;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .card {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            border-color: #00ffff;
+        }
+
+        .input::placeholder {
+            color: rgba(0, 255, 0, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+            border: 2px solid;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #00ff00;
+            color: #000;
+            border-color: #00ff00;
+        }
+
+        .btn-primary:hover {
+            background: #00cc00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00ff00;
+            border-color: #00ff00;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00aaff;
+            font-weight: bold;
+        }
+
+        .info-panel {
+            background: rgba(0, 170, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #00aaff;
+            margin-bottom: 20px;
+        }
+
+        .info-panel p {
+            margin: 5px 0;
+        }
+
+        .players-list {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item.host {
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        .game-header {
+            margin-bottom: 20px;
+        }
+
+        .status-bar {
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .panel h3 {
+            color: #00aaff;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #00aaff;
+            padding-bottom: 10px;
+        }
+
+        .instructions {
+            background: rgba(0, 170, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            color: #00aaff;
+            line-height: 1.6;
+        }
+
+        .instructions code {
+            display: block;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            color: #00ff00;
+        }
+
+        .target-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .target-info p {
+            margin: 8px 0;
+        }
+
+        .terminal-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        .terminal-output {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .terminal-line {
+            margin: 5px 0;
+        }
+
+        .terminal-line.success {
+            color: #00ff00;
+        }
+
+        .terminal-line.error {
+            color: #ff3333;
+        }
+
+        .terminal-line.info {
+            color: #00aaff;
+        }
+
+        .terminal-input {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .terminal-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .terminal-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .block-warning {
+            background: rgba(255, 51, 51, 0.2);
+            border: 2px solid #ff3333;
+            color: #ff3333;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .addons-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .addon-btn {
+            padding: 12px;
+            background: rgba(255, 165, 0, 0.1);
+            border: 2px solid #ff9900;
+            color: #ff9900;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .addon-btn:hover {
+            background: rgba(255, 165, 0, 0.3);
+            box-shadow: 0 0 15px rgba(255, 153, 0, 0.5);
+            transform: translateX(5px);
+        }
+
+        .leaderboard {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            padding: 12px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .leaderboard-item.winner {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+
+        .rank {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .winner-title {
+            font-size: 3em;
+            text-align: center;
+            color: #ffd700;
+            text-shadow: 0 0 30px #ffd700;
+            margin-bottom: 30px;
+            animation: celebrate 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes celebrate {
+            from { transform: scale(1) rotate(-2deg); }
+            to { transform: scale(1.1) rotate(2deg); }
+        }
+
+        .winner-name {
+            color: #ffd700;
+            font-size: 1.5em;
+        }
+
+        .winner-time {
+            text-align: center;
+            color: #00aaff;
+            font-size: 1.2em;
+            margin: 15px 0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+
+        @media (max-width: 1024px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding-top: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <div class="container">
+            <h1 class="title">⚡ HACK BATTLE ⚡</h1>
+            <p class="subtitle">Game Perlumbaan Simulasi Hacking</p>
+            <p class="warning">⚠️ DISCLAIMER: Ini hanya game simulasi untuk hiburan!</p>
+            
+            <div class="card">
+                <input type="text" id="usernameInput" placeholder="Masukkan Username" class="input">
+                
+                <div class="button-group">
+                    <button onclick="showCreateRoom()" class="btn btn-primary">Buat Room</button>
+                    <button onclick="showJoinRoom()" class="btn btn-secondary">Join Room</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Screen -->
+    <div id="createRoomScreen" class="screen">
+        <div class="container">
+            <h2>Buat Room Baru</h2>
+            
+            <div class="card">
+                <div class="form-group">
+                    <label>Target Parentwork:</label>
+                    <select id="targetParentwork" class="input">
+                        <option value="googledd">Googledd</option>
+                        <option value="vercel">Vercel</option>
+                        <option value="cloudflare">Cloudflare</option>
+                        <option value="ngrok">Ngrok</option>
+                        <option value="rizzglo">Rizzglo</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Target URL:</label>
+                    <input type="text" id="targetUrl" class="input" placeholder="https://example.com" value="https://example.com">
+                </div>
+                
+                <div class="button-group">
+                    <button onclick="createRoom()" class="btn btn-primary">Buat Room</button>
+                    <button onclick="showHome()" class="btn btn-secondary">Kembali</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Room Screen -->
+    <div id="joinRoomScreen" class="screen">
+        <div class="container">
+            <h2>Join Room</h2>
+            
+            <div class="card">
+                <input type="text" id="roomCodeInput" placeholder="Masukkan Room Code" class="input">
+                
+                <div class="button-group">
+                    <button onclick="joinRoom()" class="btn btn-primary">Join</button>
+                    <button onclick="showHome()" class="btn btn-secondary">Kembali</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lobby Screen -->
+    <div id="lobbyScreen" class="screen">
+        <div class="container">
+            <h2>Lobby - Room: <span id="currentRoomCode"></span></h2>
+            
+            <div class="card">
+                <div class="info-panel">
+                    <p><strong>Target:</strong> <span id="lobbyTarget"></span></p>
+                    <p><strong>Parentwork:</strong> <span id="lobbyParentwork"></span></p>
+                </div>
+                
+                <h3>Pemain:</h3>
+                <div id="playersList" class="players-list"></div>
+                
+                <div class="button-group">
+                    <button id="startGameBtn" onclick="startGame()" class="btn btn-primary" style="display:none;">Mula Game</button>
+                    <button onclick="leaveRoom()" class="btn btn-secondary">Keluar Room</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="container-wide">
+            <div class="game-header">
+                <div class="status-bar">
+                    <span>Room: <strong id="gameRoomCode"></strong></span>
+                    <span>Tahap: <strong id="currentStep">1</strong>/4</span>
+                    <span>Player: <strong id="gameUsername"></strong></span>
+                </div>
+            </div>
+
+            <div class="game-layout">
+                <div class="panel">
+                    <h3>📋 Arahan</h3>
+                    <div id="instructionsPanel" class="instructions"></div>
+                    
+                    <h3 style="margin-top: 20px;">🎯 Target Info</h3>
+                    <div class="target-info">
+                        <p><strong>URL:</strong> <span id="gameTargetUrl"></span></p>
+                        <p><strong>Parentwork:</strong> <span id="gameTargetPw"></span></p>
+                        <p id="gameIpDisplay" style="display:none;"><strong>IP:</strong> <span id="gameIp"></span></p>
+                    </div>
+
+                    <div id="addonsPanel" style="display:none;">
+                        <h3>⚡ Addons</h3>
+                        <div class="addons-list">
+                            <button onclick="useAddon('kill_air')" class="addon-btn">🚫 Kill Air</button>
+                            <button onclick="useAddon('change_pw')" class="addon-btn">🔄 Change PW</button>
+                            <button onclick="useAddon('ddos')" class="addon-btn">💥 DDOS</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel terminal-panel">
+                    <h3>💻 Terminal</h3>
+                    <div id="terminalOutput" class="terminal-output"></div>
+                    <textarea 
+                        id="terminalInput" 
+                        class="terminal-input" 
+                        placeholder="Taip command di sini..."
+                        rows="5"
+                    ></textarea>
+                    <button onclick="executeCommand()" class="btn btn-primary" style="width:100%;">Execute</button>
+                    <div id="blockWarning" class="block-warning" style="display:none;">
+                        ⚠️ Anda diblock! <span id="blockTimer"></span>s
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>🏆 Leaderboard</h3>
+                    <div id="leaderboard" class="leaderboard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Screen -->
+    <div id="winnerScreen" class="screen">
+        <div class="container">
+            <h1 class="winner-title">🏆 GAME TAMAT! 🏆</h1>
+            <div class="card">
+                <h2>Pemenang: <span id="winnerName" class="winner-name"></span></h2>
+                <p class="winner-time">Masa: <span id="winnerTime"></span></p>
+                
+                <div id="finalLeaderboard" class="leaderboard"></div>
+                
+                <button onclick="showHome()" class="btn btn-primary" style="margin-top: 20px;">Kembali ke Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue, update, remove, push, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBJ7tJy_oSH7TPwyMHFP4Tq37_mQkscpHg",
+          authDomain: "hack-battle.firebaseapp.com",
+          databaseURL: "https://hack-battle-default-rtdb.asia-southeast1.firebasedatabase.app/",
+          projectId: "hack-battle",
+          storageBucket: "hack-battle.firebasestorage.app",
+          messagingSenderId: "422575576978",
+          appId: "1:422575576978:web:e5ab8d71a270087c98934b",
+          measurementId: "G-XGCWLRWT8Q"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        let currentUser = '';
+        let currentRoomCode = '';
+        let currentStep = 1;
+        let generatedIP = '';
+        let startTime = 0;
+        let selectedAddons = [];
+        let blockTimer = null;
+
+        const STEP_INSTRUCTIONS = {
+          1: `<strong>TAHAP 1: Kenali Parentwork</strong><br><br>
+        Taip command berikut di terminal:<br>
+        <code>Parentwork = [nama_parentwork]<br>
+Url = [url_target]<br>
+Find.ip.url.parent().</code><br><br>
+        Gantikan [nama_parentwork] dan [url_target] dengan info target.`,
+          
+          2: `<strong>TAHAP 2: Pilih Addon (Opsional)</strong><br><br>
+        Anda boleh pilih addon untuk menyerang lawan:<br>
+        - 🚫 <strong>Kill Air:</strong> Block lawan 10 saat<br>
+        - 🔄 <strong>Change PW:</strong> Tuk
